@@ -1,5 +1,8 @@
 import requests
 import pandas as pd
+
+#more API info: https://gitlab.com/dword4/nhlapi/-/blob/master/stats-api.md#people
+
 pd.set_option("display.max_rows", None)
 
 response = requests.get("https://statsapi.web.nhl.com/api/v1/teams?expand=team.roster")
