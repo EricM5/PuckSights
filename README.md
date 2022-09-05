@@ -1,7 +1,7 @@
 # PuckSights
 
 
-<p align="center"> <img src="https://user-images.githubusercontent.com/76453820/188305495-2f857ff2-4622-4216-851b-bd8f1f86b99d.png"> </p>
+<p align="center"> <img src="https://user-images.githubusercontent.com/76453820/188369855-725b8224-3496-4a1d-b64b-6396d8f1c303.png"> </p>
 
 <p align="center"> A statistics dashboard developed with Dash, Plotly, Python, and an NHL API designed to give insightful trends within NHL Player performance year to year. </br> </br>
 Tailored for NHL General Managers, Passionate Hockey Superfans, and Sports Broadcasting Networks. </p>
