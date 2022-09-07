@@ -58,12 +58,12 @@ app.layout = html.Div([
     # dcc.Dropdown(list(PLAYER_DF.index), value=f"{list(PLAYER_DF.index)[1]}")
     # dcc.Graph()
     dcc.Graph(id="player_data"),
-    dcc.Store(id="store-player-stats")
+    dcc.Store(id="store-player-stats") #need to convert back to df
 ])
 
 @app.callback([
     Output(component_id="player_data", component_property="figure"),
-    Output(component_id="store-player-stats", component_property="children")],
+    Output(component_id="store-player-stats", component_property="data")],
     [Input(component_id="send_player", component_property='value'),
     Input(component_id="filter-input", component_property='value')]
 )
@@ -77,7 +77,7 @@ def return_player_stats(player_name, filter_input):
         general_stats_df = general_stats_df.groupby('season').sum()
     fig = px.line(general_stats_df, x=general_stats_df.index, y=f"{FILTER_DICT[selected_filter]}",
                   hover_name="stat.games")
-    return fig, df
+    return fig, df.to_dict()
 
 # def
 
