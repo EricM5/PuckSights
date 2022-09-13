@@ -32,8 +32,6 @@ FILTER_DICT = {"Goals":"stat.goals",
 DIGIT_FILTERS = ["Goals", "Assists", "Points",
                  "Games Played", "Penalty Minutes", "PlusMinus"]
 
-
-
 def get_player_id(name):
     player_id = PLAYER_DF.loc[name]["person.id"]
     return player_id
@@ -57,14 +55,15 @@ app = Dash(__name__)
 app.layout = html.Div([
     dcc.Store(id="player_data_store"),
     dcc.Dropdown(list(PLAYER_DF.index), value=f"{list(PLAYER_DF.index)[1]}", id="player_list"),
-    dcc.Dropdown(id="team_list", value="All Teams", placeholder="All Teams"),
+    dcc.Dropdown(id="team_list", value="All Teams", placeholder="All Teams", className="border rounded-circle"),
     dcc.Store(id="store_player_name"),
-    dcc.RadioItems(list(FILTER_DICT.keys()), id="filter_input"),
+    dcc.RadioItems(id="filter_input"),
     # dcc.Dropdown(list(PLAYER_DF.index), value=f"{list(PLAYER_DF.index)[1]}")
-    # dcc.Graph()
+    dcc.Graph(id="player_stats_figure"),
     html.Div(id="sendhere"),
-    dcc.Graph(id="player_data") #need to convert back to df
+    dcc.Graph(id="player_data"), #need to convert back to df
     # dcc.Store(id="team_list")
+
 ])
 
 @app.callback([
@@ -85,20 +84,60 @@ def update_dropdown(player_name):
 @app.callback(
     # Output(component_id="player_data", component_property="figure"),
     Output(component_id="filter_input", component_property="options"),
+    Output(component_id="filter_input", component_property="value"),
     Input(component_id="team_list", component_property="value"),
     Input(component_id="store_player_name", component_property="data")
 )
 def update_stat_options(team, player_name):
     position = PLAYER_DF.loc[player_name]["position.name"]
+
     if position == "Goalie":
-        # stat_options = ["stat.shutouts", "stat.ties",
-        #                 "stat.wins", "stat.losses",
-        #                 "stat.goalAgainstAverage",
-        #                 "stat.games", "stat.goalsAgainst"]
-        stat_options = ["GAA", "Shutouts", "Wins", "Losses", "Ties", "Games"]
+        stat_options = [
+            {'label': 'GAA', 'value': 'stat.goalAgainstAverage'},
+            {'label': 'Shutouts', 'value': 'stat.shutouts'},
+            {'label': 'Wins', 'value': 'stat.wins'},
+            {'label': 'Losses', 'value': 'stat.losses'},
+            {'label': 'Ties', 'value': 'stat.ties'},
+            {'label': 'GP', 'value': 'stat.games'},
+        ]
+        first_val = 'stat.goalAgainstAverage'
+
     else:
-        stat_options = ["Goals", "Assists", "Points", "Games", "Penalty Minutes", "Plus/Minus"]
-    return stat_options
+        stat_options = [
+            {'label': 'Goals', 'value': 'stat.goals'},
+            {'label': 'Assists', 'value': 'stat.assists'},
+            {'label': 'Points', 'value': 'stat.points'},
+            {'label': 'Shot %', 'value': 'stat.shotPct'},
+            {'label': 'GP', 'value': 'stat.games'},
+            {'label': 'Penalty Minutes', 'value': 'stat.pim'},
+            {'label': 'PlusMinus', 'value': 'stat.plusMinus'}
+        ]
+        first_val = 'stat.goals'
+
+    return stat_options, first_val
+@app.callback(
+    Output(component_id="player_stats_figure", component_property="figure"),
+    Input(component_id="filter_input", component_property="value"),
+    Input(component_id="store_player_name", component_property="data"),
+    Input(component_id="player_data_store", component_property="data")
+)
+def get_player_stats_graph(filter, player_name, player_data_json):
+    # team_specific_df = general_stats_df.loc[general_stats_df["team.name"] == team_name]
+    player_data_df = pd.read_json(player_data_json)
+    position = PLAYER_DF.loc[player_name]["position.name"]
+    if position == "Goalie":
+        player_data_df = player_data_df.set_index("season")
+        player_data_df.index = player_data_df.index.map(str)
+        fig = px.line(player_data_df, x=player_data_df.index, y=f'{filter}')
+        return fig
+    else:
+        player_data_df = player_data_df.groupby('season').sum()
+        print(player_data_df.index)
+        player_data_df.index = player_data_df.index.map(str)
+
+        print(player_data_df.index)
+        fig = px.line(player_data_df, x=player_data_df.index, y=f'{filter}')
+        return fig
 
 # @app.callback(
 #     [
